@@ -87,7 +87,7 @@ local modes = {
 }
 
 for k,v in ipairs(modes) do
-	minetest.register_node("arrowboards:"..v.name,{
+	core.register_node("arrowboards:"..v.name,{
 		paramtype = "light",
 		paramtype2 = "facedir",
 		groups = {not_in_creative_inventory=1},
@@ -112,7 +112,7 @@ for k,v in ipairs(modes) do
 	})
 end
 
-minetest.register_node("arrowboards:base",{
+core.register_node("arrowboards:base",{
 	description = "Arrow Board",
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -138,7 +138,7 @@ minetest.register_node("arrowboards:base",{
 		},
 	},
 	on_construct = function(pos)
-		local meta = minetest.get_meta(pos)
+		local meta = core.get_meta(pos)
 		local fs = "size[4,1]dropdown[0,0;4;mode;"
 		for _,v in ipairs(modes) do
 			fs = fs..v.desc..","
@@ -150,13 +150,13 @@ minetest.register_node("arrowboards:base",{
 	on_receive_fields = function(pos,formname,fields,sender)
 		local name = sender:get_player_name()
 		if fields.quit or not fields.mode then return end
-		if minetest.is_protected(pos,name) and not minetest.check_player_privs(name,{protection_bypass=true}) then
-			minetest.record_protection_violation(pos,name)
+		if core.is_protected(pos,name) and not core.check_player_privs(name,{protection_bypass=true}) then
+			core.record_protection_violation(pos,name)
 			return
 		end
 		for k,v in ipairs(modes) do
 			if fields.mode == v.desc then
-				local meta = minetest.get_meta(pos)
+				local meta = core.get_meta(pos)
 				local fs = "size[4,1]dropdown[0,0;4;mode;"
 				for _,v in ipairs(modes) do
 					fs = fs..v.desc..","
@@ -165,40 +165,40 @@ minetest.register_node("arrowboards:base",{
 				fs = fs..";"..k.."]"
 				meta:set_string("formspec",fs)
 				pos.y = pos.y + 1
-				local node = minetest.get_node(pos)
+				local node = core.get_node(pos)
 				node.name = "arrowboards:"..v.name
-				minetest.set_node(pos,node)
+				core.set_node(pos,node)
 			end
 		end
 	end,
 	--Some of this might be "borrowed" from the LTC-4000E :P
 	after_place_node = function(pos,placer)
-		local node = minetest.get_node(pos)
+		local node = core.get_node(pos)
 		local toppos = {x=pos.x,y=pos.y + 1,z=pos.z}
-		local topnode = minetest.get_node(toppos)
+		local topnode = core.get_node(toppos)
 		local placername = placer:get_player_name()
 		if topnode.name ~= "air" then
 			if placer:is_player() then
-				minetest.chat_send_player(placername,"Can't place arrow board - no room for the top half!")
+				core.chat_send_player(placername,"Can't place arrow board - no room for the top half!")
 			end
-			minetest.set_node(pos,{name="air"})
+			core.set_node(pos,{name="air"})
 			return true
 		end
-		if minetest.is_protected(toppos,placername) and not minetest.check_player_privs(placername,{protection_bypass=true}) then
+		if core.is_protected(toppos,placername) and not core.check_player_privs(placername,{protection_bypass=true}) then
 			if placer:is_player() then
-				minetest.chat_send_player(placername,"Can't place arrow board - top half is protected!")
-				minetest.record_protection_violation(toppos,placername)
+				core.chat_send_player(placername,"Can't place arrow board - top half is protected!")
+				core.record_protection_violation(toppos,placername)
 			end
-			minetest.set_node(pos,{name="air"})
+			core.set_node(pos,{name="air"})
 			return true
 		end
 		node.name = "arrowboards:off"
-		minetest.set_node(toppos,node)
+		core.set_node(toppos,node)
 	end,
 	on_destruct = function(pos)
 		pos.y = pos.y + 1
-		if string.sub(minetest.get_node(pos).name,1,12) == "arrowboards:" then
-			minetest.set_node(pos,{name="air"})
+		if string.sub(core.get_node(pos).name,1,12) == "arrowboards:" then
+			core.set_node(pos,{name="air"})
 		end
 	end,
 	on_rotate = function(pos,node,user,mode,new_param2)
@@ -206,19 +206,19 @@ minetest.register_node("arrowboards:base",{
 			return false
 		end
 		local ret = screwdriver.rotate_simple(pos,node,user,mode,new_param2)
-		minetest.after(0,function(pos)
-			local newnode = minetest.get_node(pos)
+		core.after(0,function(pos)
+			local newnode = core.get_node(pos)
 			local param2 = newnode.param2
 			pos.y = pos.y + 1
-			local topnode = minetest.get_node(pos)
+			local topnode = core.get_node(pos)
 			topnode.param2 = param2
-			minetest.set_node(pos,topnode)
+			core.set_node(pos,topnode)
 		end,pos)
 		return ret
 	end,
 })
 
-minetest.register_craft({
+core.register_craft({
 	output = "arrowboards:base",
 	recipe = {
 		{"mesecons_lightstone:lightstone_yellow_off","mesecons_luacontroller:luacontroller0000","mesecons_lightstone:lightstone_yellow_off"},
